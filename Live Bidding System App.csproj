@@ -31,10 +31,8 @@
 	<ItemGroup>
 	  <Folder Include="Controllers\" />
 	  <Folder Include="Models\Admin\" />
-	  <Folder Include="Models\Buyer\" />
-	  <Folder Include="Models\Seller\" />
 	  <Folder Include="Frontend\" />
-	  <Folder Include="Repositories\" />
+	  <Folder Include="Repositories\User\DTO\" />
 	</ItemGroup>
 
 </Project>
