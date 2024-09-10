@@ -13,9 +13,8 @@ namespace Live_Bidding_System_App.Models
         public int AuctionId { get; set; }
         public Auction Auction { get; set; }
 
-        public string UserId { get; set; }
+        public string UserId { get; set; }//buyer id 
         public ApplicationUser User { get; set; }
-
         public PaymentStatus Status { get; set; }  // Payment status (e.g., Completed, Pending)
     }
 

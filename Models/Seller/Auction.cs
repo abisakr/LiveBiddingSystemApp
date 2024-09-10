@@ -20,10 +20,11 @@ namespace Live_Bidding_System_App.Models.Seller
         // Navigation properties
         public ICollection<Bid> Bids { get; set; }
         public ChatRoom ChatRoom { get; set; }
+
         public ICollection<PaymentHistory> PaymentHistories { get; set; }
 
         // Optional: Property to track the highest bid for better performance
-        public decimal HighestBidAmount { get; set; }
+        //  public decimal HighestBidAmount { get; set; }
     }
 
 
