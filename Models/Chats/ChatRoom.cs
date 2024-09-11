@@ -3,7 +3,6 @@ using System.ComponentModel.DataAnnotations;
 
 namespace Live_Bidding_System_App.Models.Chats
 {
-
     public class ChatRoom
     {
         [Key]
@@ -17,6 +16,4 @@ namespace Live_Bidding_System_App.Models.Chats
         // Users who are part of this chat room (bidders)
         public ICollection<ApplicationUser> Participants { get; set; }
     }
-
-
 }

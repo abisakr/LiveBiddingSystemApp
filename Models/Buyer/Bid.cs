@@ -6,9 +6,9 @@ namespace Live_Bidding_System_App.Models.Buyer
     public class Bid
     {
         [Key]
-        public int Id { get; set; }  // Primary Key
-        public decimal Amount { get; set; }  // Bid amount
-        public DateTime BidTime { get; set; }  // Time bid was placed
+        public int Id { get; set; }
+        public decimal Amount { get; set; }
+        public DateTime BidTime { get; set; }
 
         // Foreign Keys
         public int AuctionId { get; set; }
@@ -20,5 +20,4 @@ namespace Live_Bidding_System_App.Models.Buyer
         [Timestamp]
         public byte[] RowVersion { get; set; }  // Concurrency control
     }
-
 }

@@ -15,5 +15,4 @@ namespace Live_Bidding_System_App.Models.Chats
         public string UserId { get; set; }
         public ApplicationUser User { get; set; }
     }
-
 }

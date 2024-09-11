@@ -21,6 +21,4 @@ namespace Live_Bidding_System_App.Models.Seller
         Approved,
         Rejected
     }
-
-
 }

@@ -26,6 +26,4 @@ namespace Live_Bidding_System_App.Models.Seller
         // Optional: Property to track the highest bid for better performance
         //  public decimal HighestBidAmount { get; set; }
     }
-
-
 }

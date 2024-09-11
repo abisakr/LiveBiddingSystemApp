@@ -81,7 +81,12 @@ builder.Services.AddEndpointsApiExplorer();
 builder.Services.AddSwaggerGen();
 
 var app = builder.Build();
-
+// Seed roles during application startup
+using (var scope = app.Services.CreateScope())
+{
+    var roleManager = scope.ServiceProvider.GetRequiredService<RoleManager<IdentityRole>>();
+    await SeedRoles(roleManager);
+}
 // Configure the HTTP request pipeline
 if (app.Environment.IsDevelopment())
 {
@@ -102,3 +107,19 @@ app.UseEndpoints(endpoints =>
 });
 
 app.Run();
+// Method to seed roles
+async Task SeedRoles(RoleManager<IdentityRole> roleManager)
+{
+    string[] roleNames = { "Buyer", "Seller" };
+
+    foreach (var roleName in roleNames)
+    {
+        // Check if the role exists
+        var roleExists = await roleManager.RoleExistsAsync(roleName);
+        if (!roleExists)
+        {
+            // Create the role if it doesn't exist
+            await roleManager.CreateAsync(new IdentityRole(roleName));
+        }
+    }
+}
