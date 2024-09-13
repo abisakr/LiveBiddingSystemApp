@@ -5,7 +5,7 @@ namespace Live_Bidding_System_App.Repositories.User.DTO
     public class RegisterDto
     {
         [Required]
-        public string UserName { get; set; }
+        public string FullName { get; set; }
         [Required]
         public string Email { get; set; }
         [Required]

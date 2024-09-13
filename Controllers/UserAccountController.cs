@@ -10,6 +10,7 @@ namespace Live_Bidding_System_App.Controllers
 {
     [Route("api/[controller]")]
     [ApiController]
+
     public class UserAccountController : ControllerBase
     {
         private readonly UserManager<ApplicationUser> _userManager;
@@ -28,50 +29,25 @@ namespace Live_Bidding_System_App.Controllers
         [HttpPost("login")]
         public async Task<IActionResult> Login(LoginDto loginDto)
         {
-            try
-            {
-                if (loginDto != null)
-                {
-                    var result = await _userAccountRepository.Login(loginDto);
-                    if (string.IsNullOrEmpty(result))
-                    {
-                        return BadRequest("Invalid username or password.");
-                    }
-                    return Ok(new { Token = result });
-                }
-                else return BadRequest("Please Enter The Data");
-            }
+            if (loginDto == null)
+                return BadRequest("Please enter the data.");
 
-            catch (Exception ex)
-            {
-                return StatusCode(500, "An error occurred while processing your request." + ex);
-            }
+            var result = await _userAccountRepository.Login(loginDto);
+            return result.IsSuccess
+                ? Ok(new { Token = result.Data })
+                : BadRequest(result.Message);
         }
 
         [HttpPost("register")]
         public async Task<IActionResult> Register([FromForm] RegisterDto registerDto)
         {
-            try
-            {
-                if (registerDto != null)
-                {
-                    var result = await _userAccountRepository.Register(registerDto);
-                    if (string.IsNullOrEmpty(result))
-                    {
-                        return BadRequest("Registeration Failed.");
-                    }
+            if (registerDto == null)
+                return BadRequest("Please enter the data.");
 
-                    return Ok(new { Message = result });
-
-                }
-                else return BadRequest("Please Enter The Data");
-            }
-
-            catch (Exception)
-            {
-
-                return StatusCode(500, "An error occurred while processing your request.");
-            }
+            var result = await _userAccountRepository.Register(registerDto);
+            return result.IsSuccess
+                ? Ok(new { Message = result.Message })
+                : BadRequest(result.Message);
         }
 
         public class GoogleLoginRequestDto
@@ -83,43 +59,28 @@ namespace Live_Bidding_System_App.Controllers
         public async Task<IActionResult> GoogleLogin([FromBody] GoogleLoginRequestDto request)
         {
             if (string.IsNullOrEmpty(request.Token))
-            {
                 return BadRequest("Token is required.");
-            }
 
             try
             {
                 var payload = await GoogleJsonWebSignature.ValidateAsync(request.Token);
-                var user = await _userManager.FindByEmailAsync(payload.Email);
-                if (user == null)
+                var user = await _userManager.FindByEmailAsync(payload.Email)
+                    ?? new ApplicationUser { FullName = payload.Name, Email = payload.Email };
+
+                if (user.Id == null)
                 {
-                    user = new ApplicationUser
-                    {
-                        UserName = payload.Name,
-                        Email = payload.Email
-                    };
                     var result = await _userManager.CreateAsync(user);
                     if (!result.Succeeded)
-                    {
                         return BadRequest("Failed to create user.");
-                    }
                 }
 
-                // Use the GenerateToken method to create the JWT token
                 var jwtToken = _tokenGenerator.GenerateToken(user.Id);
-
-                return Ok(new
-                {
-                    token = jwtToken,
-                    expiration = DateTime.UtcNow.AddHours(10) // Ensure this matches the expiration in GenerateToken
-                });
+                return Ok(new { token = jwtToken, expiration = DateTime.UtcNow.AddHours(10) });
             }
             catch (Exception ex)
             {
-                // Log exception
                 return BadRequest($"Error validating Google token: {ex.Message}");
             }
         }
-
     }
 }

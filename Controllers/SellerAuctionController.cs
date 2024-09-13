@@ -14,7 +14,8 @@ namespace Live_Bidding_System_App.Controllers
         {
             _sellerRepository = sellerRepository;
         }
-        //   [Authorize(AuthenticationSchemes = "Bearer")]
+
+        // [Authorize(AuthenticationSchemes = "Bearer")]
         [HttpPost("createAuctionItem")]
         public async Task<IActionResult> CreateAuctionItem([FromForm] CreateAuctionItemDto createAuctionItemDto)
         {
@@ -22,40 +23,41 @@ namespace Live_Bidding_System_App.Controllers
             {
                 var result = await _sellerRepository.CreateAuctionItem(createAuctionItemDto);
 
-                if (result == "Successfully Saved")
+                if (result.IsSuccess)
                 {
-                    return Ok(result);
+                    return Ok(result.Message); // Success case
                 }
-                return BadRequest("Failed to save Auction Item");
-            }
 
-            catch (Exception)
+                return BadRequest(result.Message); // Failure case
+            }
+            catch (Exception ex)
             {
-                return StatusCode(500, "An error occurred while processing your request.");
+                return StatusCode(500, $"An error occurred while processing your request: {ex.Message}");
             }
         }
-        //  [Authorize(AuthenticationSchemes = "Bearer")]
+
+        // [Authorize(AuthenticationSchemes = "Bearer")]
         [HttpPut("editAuctionItem/{itemId}")]
-        public async Task<IActionResult> EditAuctionItem(int itemId, [FromForm] CreateAuctionItemDto createAuctionItemDto)
+        public async Task<IActionResult> EditAuctionItem(int itemId, [FromForm] EditAuctionItemDto editAuctionItemDto)
         {
             try
             {
-                var result = await _sellerRepository.EditAuctionItem(itemId, createAuctionItemDto);
+                var result = await _sellerRepository.EditAuctionItem(itemId, editAuctionItemDto);
 
-                if (result == "Auction Item Edited Successfully")
+                if (result.IsSuccess)
                 {
-                    return Ok(result);
+                    return Ok(result.Message); // Success case
                 }
-                return NotFound(result);
-            }
 
-            catch (Exception)
+                return result.Message == "Item not found" ? NotFound(result.Message) : BadRequest(result.Message); // NotFound or Failure case
+            }
+            catch (Exception ex)
             {
-                return StatusCode(500, "An error occurred while processing your request.");
+                return StatusCode(500, $"An error occurred while processing your request: {ex.Message}");
             }
         }
 
-        //    [Authorize(AuthenticationSchemes = "Bearer")]
+        // [Authorize(AuthenticationSchemes = "Bearer")]
         [HttpDelete("deleteAuctionItem/{itemId}")]
         public async Task<IActionResult> DeleteAuctionItem(int itemId)
         {
@@ -63,16 +65,16 @@ namespace Live_Bidding_System_App.Controllers
             {
                 var result = await _sellerRepository.DeleteAuctionItem(itemId);
 
-                if (result == "Auction Item Deleted Successfully")
+                if (result.IsSuccess)
                 {
-                    return Ok(result);
+                    return Ok(result.Message); // Success case
                 }
-                return NotFound(result);
-            }
 
-            catch (Exception)
+                return result.Message == "Item not found" ? NotFound(result.Message) : BadRequest(result.Message); // NotFound or Failure case
+            }
+            catch (Exception ex)
             {
-                return StatusCode(500, "An error occurred while processing your request.");
+                return StatusCode(500, $"An error occurred while processing your request: {ex.Message}");
             }
         }
 
@@ -82,40 +84,37 @@ namespace Live_Bidding_System_App.Controllers
             try
             {
                 var result = await _sellerRepository.GetAllAuctionItems();
-                if (result != null && result.Any())
-                {
-                    return Ok(result);
-                }
-                else
-                {
-                    return NotFound();
-                }
-            }
 
-            catch (Exception)
+                if (result.IsSuccess && result.Data != null && result.Data.Any())
+                {
+                    return Ok(result.Data); // Success case
+                }
+
+                return NotFound(result.Message); // NotFound case
+            }
+            catch (Exception ex)
             {
-                return StatusCode(500, "An error occurred while processing your request.");
+                return StatusCode(500, $"An error occurred while processing your request: {ex.Message}");
             }
         }
+
         [HttpGet("getAuctionItemById/{itemId}")]
         public async Task<IActionResult> GetAuctionItemById(int itemId)
         {
             try
             {
                 var result = await _sellerRepository.GetAuctionItemById(itemId);
-                if (result != null)
-                {
-                    return Ok(result);
-                }
-                else
-                {
-                    return NotFound();
-                }
-            }
 
-            catch (Exception)
+                if (result.IsSuccess)
+                {
+                    return Ok(result.Data); // Success case
+                }
+
+                return result.Message == "Item not found" ? NotFound(result.Message) : BadRequest(result.Message); // NotFound or Failure case
+            }
+            catch (Exception ex)
             {
-                return StatusCode(500, "An error occurred while processing your request.");
+                return StatusCode(500, $"An error occurred while processing your request: {ex.Message}");
             }
         }
     }

@@ -1,10 +1,12 @@
 ﻿using Live_Bidding_System_App.DataContext;
+using Live_Bidding_System_App.Helper;
 using Live_Bidding_System_App.Models.Seller;
 using Live_Bidding_System_App.Repositories.Seller.DTO;
 using Microsoft.EntityFrameworkCore;
 
 namespace Live_Bidding_System_App.Repositories.Seller
 {
+
     public class SellerRepository : ISellerRepository
     {
         private readonly ApplicationDbContext _dbContext;
@@ -14,129 +16,140 @@ namespace Live_Bidding_System_App.Repositories.Seller
             _dbContext = dbContext;
         }
 
-        public async Task<string> CreateAuctionItem(CreateAuctionItemDto createAuctionItemDto)
+        public async Task<OperationResult<string>> CreateAuctionItem(CreateAuctionItemDto createAuctionItemDto)
         {
             try
             {
-                // Read the photo into a byte array
                 using var stream = createAuctionItemDto.Photo.OpenReadStream();
                 using var memoryStream = new MemoryStream();
                 await stream.CopyToAsync(memoryStream);
-                string userId = "dddd";
-                // Create AuctionItem entity
+
                 var auctionItem = new AuctionItem
                 {
                     Name = createAuctionItemDto.Name,
                     Description = createAuctionItemDto.Description,
                     Photo = memoryStream.ToArray(),
-                    UserId = userId
+                    UserId = "690c4def-8904-4767-b903-ed5b6a8c1136"  // Replace with actual user ID logic
                 };
 
-                // Add and save to the database
                 await _dbContext.AuctionItemsTbl.AddAsync(auctionItem);
                 var result = await _dbContext.SaveChangesAsync();
 
-                return result > 0 ? "Successfully Saved" : "Failed to save Auction Item";
+                return result > 0
+                    ? OperationResult<string>.SuccessResult("Auction Item Successfully saved")
+                    : OperationResult<string>.FailureResult("Failed to save auction item");
             }
             catch (Exception ex)
             {
-                throw new Exception("An error occurred while creating the Auction Item.", ex);
+                return OperationResult<string>.FailureResult($"An error occurred: {ex.Message}");
             }
         }
 
-        public async Task<string> EditAuctionItem(int itemId, CreateAuctionItemDto createAuctionItemDto)
+        public async Task<OperationResult<string>> EditAuctionItem(int itemId, EditAuctionItemDto editAuctionItemDto)
         {
             try
             {
                 var auctionItem = await _dbContext.AuctionItemsTbl.FindAsync(itemId);
-
                 if (auctionItem == null)
-                    return "Auction Item Not Found";
+                    return OperationResult<string>.NotFoundResult();
 
-                // Update fields
-                auctionItem.Name = createAuctionItemDto.Name;
-                auctionItem.Description = createAuctionItemDto.Description;
-                // Update Photo if a new one is uploaded
-                if (createAuctionItemDto.Photo != null)
+                auctionItem.Name = editAuctionItemDto.Name;
+                auctionItem.Description = editAuctionItemDto.Description;
+
+                if (editAuctionItemDto.Photo != null)
                 {
-                    using var stream = createAuctionItemDto.Photo.OpenReadStream();
+                    using var stream = editAuctionItemDto.Photo.OpenReadStream();
                     using var memoryStream = new MemoryStream();
                     await stream.CopyToAsync(memoryStream);
                     auctionItem.Photo = memoryStream.ToArray();
                 }
 
                 _dbContext.AuctionItemsTbl.Update(auctionItem);
-
                 var result = await _dbContext.SaveChangesAsync();
-                return result > 0 ? "Auction Item Edited Successfully" : "Failed to Edit Auction Item";
+
+                return result > 0
+                    ? OperationResult<string>.SuccessResult("Auction item edited successfully")
+                    : OperationResult<string>.FailureResult("Failed to edit auction item");
             }
             catch (Exception ex)
             {
-                throw new Exception("An error occurred while editing the Auction Item.", ex);
+                return OperationResult<string>.FailureResult($"An error occurred: {ex.Message}");
             }
         }
 
-        public async Task<string> DeleteAuctionItem(int itemId)
+        public async Task<OperationResult<string>> DeleteAuctionItem(int itemId)
         {
             try
             {
                 var auctionItem = await _dbContext.AuctionItemsTbl.FindAsync(itemId);
-
                 if (auctionItem == null)
-                    return "Auction Item Not Found";
+                    return OperationResult<string>.NotFoundResult();
 
                 _dbContext.AuctionItemsTbl.Remove(auctionItem);
                 var result = await _dbContext.SaveChangesAsync();
 
-                return result > 0 ? "Auction Item Deleted Successfully" : "Failed to Delete Auction Item";
+                return result > 0
+                    ? OperationResult<string>.SuccessResult("Auction item deleted successfully")
+                    : OperationResult<string>.FailureResult("Failed to delete auction item");
             }
             catch (Exception ex)
             {
-                throw new Exception("An error occurred while deleting the Auction Item.", ex);
+                return OperationResult<string>.FailureResult($"An error occurred: {ex.Message}");
             }
         }
 
-        public async Task<ViewAuctionItemDto> GetAuctionItemById(int itemId)
+        public async Task<OperationResult<ViewAuctionItemDto>> GetAuctionItemById(int itemId)
         {
             try
             {
-                var auctionItem = await _dbContext.AuctionItemsTbl.FirstOrDefaultAsync(p => p.Id == itemId);
-
+                var auctionItem = await _dbContext.AuctionItemsTbl.FindAsync(itemId);
                 if (auctionItem == null)
-                    return null;
+                    return OperationResult<ViewAuctionItemDto>.NotFoundResult();
 
-                return new ViewAuctionItemDto
+                var auctionItemDto = new ViewAuctionItemDto
                 {
                     Name = auctionItem.Name,
                     Description = auctionItem.Description,
                     Photo = Convert.ToBase64String(auctionItem.Photo),
                     Status = auctionItem.Status.ToString()
                 };
+
+                return OperationResult<ViewAuctionItemDto>.SuccessResult("Item found", auctionItemDto);
             }
             catch (Exception ex)
             {
-                throw new Exception("An error occurred while fetching the Auction Item.", ex);
+                return OperationResult<ViewAuctionItemDto>.FailureResult($"An error occurred: {ex.Message}");
             }
         }
-
-        public async Task<IEnumerable<ViewAuctionItemDto>> GetAllAuctionItems()
+        public async Task<OperationResult<IEnumerable<ViewAuctionItemDto>>> GetAllAuctionItems()
         {
             try
             {
                 var auctionItems = await _dbContext.AuctionItemsTbl.ToListAsync();
 
-                return auctionItems.Select(auctionItem => new ViewAuctionItemDto
+                if (auctionItems == null || !auctionItems.Any())
+                {
+                    return OperationResult<IEnumerable<ViewAuctionItemDto>>.NotFoundResult();
+                }
+
+                var auctionItemDtos = auctionItems.Select(auctionItem => new ViewAuctionItemDto
                 {
                     Name = auctionItem.Name,
                     Description = auctionItem.Description,
                     Status = auctionItem.Status.ToString(),
                     Photo = Convert.ToBase64String(auctionItem.Photo)
                 }).ToList();
+
+                return OperationResult<IEnumerable<ViewAuctionItemDto>>.SuccessResult("Auction items retrieved successfully", auctionItemDtos);
             }
             catch (Exception ex)
             {
-                throw new Exception("An error occurred while fetching Auction Items.", ex);
+                return OperationResult<IEnumerable<ViewAuctionItemDto>>.FailureResult($"An error occurred: {ex.Message}");
             }
         }
+
     }
+
+
+
 }

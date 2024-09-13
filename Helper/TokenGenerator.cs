@@ -36,7 +36,7 @@ namespace Live_Bidding_System_App.Helper
             var claims = new List<Claim>
     {
         new Claim(ClaimTypes.NameIdentifier, Id),
-        new Claim(ClaimTypes.Name, user.UserName)
+        new Claim(ClaimTypes.Name, user.FullName)
     };
 
             // Add roles as claims
