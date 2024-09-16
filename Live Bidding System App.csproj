@@ -29,9 +29,7 @@
 	</ItemGroup>
 
 	<ItemGroup>
-	  <Folder Include="Controllers\" />
 	  <Folder Include="Frontend\" />
-	  <Folder Include="Repositories\User\DTO\" />
 	</ItemGroup>
 
 </Project>

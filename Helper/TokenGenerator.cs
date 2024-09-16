@@ -1,4 +1,6 @@
-﻿using Microsoft.IdentityModel.Tokens;
+﻿using Live_Bidding_System_App.Models;
+using Microsoft.AspNetCore.Identity;
+using Microsoft.IdentityModel.Tokens;
 using System.IdentityModel.Tokens.Jwt;
 using System.Security.Claims;
 using System.Text;
@@ -8,54 +10,47 @@ namespace Live_Bidding_System_App.Helper
     public class TokenGenerator
     {
         private readonly IConfiguration _config;
+        private readonly UserManager<ApplicationUser> _userManager;
 
-        public TokenGenerator(IConfiguration config)
+        public TokenGenerator(IConfiguration config, UserManager<ApplicationUser> userManager)
         {
             _config = config;
+            _userManager = userManager;
         }
 
-        //public string GenerateTokens(string Id, string FullName)
-        //{
-        //    //var securityKey = new SymmetricSecurityKey(Encoding.UTF8.GetBytes(_config["Authentication:SecurityKey"]));
-
-        //    string securityKeyString = _config["Authentication:SecurityKey"] ?? "DefaultSecurityKey";
-        //    var securityKey = new SymmetricSecurityKey(Encoding.UTF8.GetBytes(securityKeyString));
-        //    var credentials = new SigningCredentials(securityKey, SecurityAlgorithms.HmacSha256);
-        //    var claims = new[]
-        //    {
-        //        new Claim(ClaimTypes.NameIdentifier,Id),
-        //        new Claim(ClaimTypes.Name,FullName)
-        //    };
-        //    var token = new JwtSecurityToken(_config["Authentication:Issuer"],
-        //        _config["Authentication:Audience"],
-        //        claims,
-        //        expires: DateTime.Now.AddMinutes(60),
-        //        signingCredentials: credentials);
-
-
-        //    return new JwtSecurityTokenHandler().WriteToken(token);
-
-        //}
-
-
-        public string GenerateToken(string Id, string FullName)
+        public async Task<string> GenerateToken(string Id)
         {
             var issuer = _config["Jwt:Issuer"];
             var audience = _config["Jwt:Audience"];
             var key = Encoding.UTF8.GetBytes(_config["Jwt:Key"]);
             var signingCredentials = new SigningCredentials(
-                                    new SymmetricSecurityKey(key),
-                                    SecurityAlgorithms.HmacSha512Signature
-                                );
+                new SymmetricSecurityKey(key),
+                SecurityAlgorithms.HmacSha512Signature
+            );
 
-            var subject = new ClaimsIdentity(new[]
+            // Retrieve the user by Id and get their roles
+            var user = await _userManager.FindByIdAsync(Id);  // Use UserManager to get the user
+            var roles = await _userManager.GetRolesAsync(user);  // Get the roles for the user
+
+            // Create the list of claims
+            var claims = new List<Claim>
+    {
+        new Claim(ClaimTypes.NameIdentifier, Id),
+        new Claim(ClaimTypes.Name, user.FullName)
+    };
+
+            // Add roles as claims
+            foreach (var role in roles)
             {
-  //            new Claim(JwtRegisteredClaimNames.Sub, user.UserName),
-  //            new Claim(JwtRegisteredClaimNames.Email, user.UserName),
-                new Claim(ClaimTypes.NameIdentifier,Id),
-                new Claim(ClaimTypes.Name,FullName)
-               });
+                claims.Add(new Claim(ClaimTypes.Role, role));
+            }
+
+            // Create the ClaimsIdentity
+            var subject = new ClaimsIdentity(claims);
+
             var expires = DateTime.UtcNow.AddHours(3);
+
+            // Create the token descriptor
             var tokenDescriptor = new SecurityTokenDescriptor
             {
                 Subject = subject,
@@ -64,11 +59,15 @@ namespace Live_Bidding_System_App.Helper
                 Audience = audience,
                 SigningCredentials = signingCredentials
             };
+
+            // Generate and return the token
             var tokenHandler = new JwtSecurityTokenHandler();
             var token = tokenHandler.CreateToken(tokenDescriptor);
             var jwtToken = tokenHandler.WriteToken(token);
+
             return jwtToken;
         }
+
 
     }
 }
