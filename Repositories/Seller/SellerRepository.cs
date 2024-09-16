@@ -10,10 +10,12 @@ namespace Live_Bidding_System_App.Repositories.Seller
     public class SellerRepository : ISellerRepository
     {
         private readonly ApplicationDbContext _dbContext;
+        private readonly ApprovalNotification _approvalNotification;
 
-        public SellerRepository(ApplicationDbContext dbContext)
+        public SellerRepository(ApplicationDbContext dbContext, ApprovalNotification approvalNotification)
         {
             _dbContext = dbContext;
+            _approvalNotification = approvalNotification;
         }
 
         public async Task<OperationResult<string>> CreateAuctionItem(CreateAuctionItemDto createAuctionItemDto)
@@ -35,9 +37,13 @@ namespace Live_Bidding_System_App.Repositories.Seller
                 await _dbContext.AuctionItemsTbl.AddAsync(auctionItem);
                 var result = await _dbContext.SaveChangesAsync();
 
-                return result > 0
-                    ? OperationResult<string>.SuccessResult("Auction Item Successfully saved")
-                    : OperationResult<string>.FailureResult("Failed to save auction item");
+                if (result > 0)
+                {
+                    await _approvalNotification.OnAuctionItemCreated(auctionItem.Name);
+                    return OperationResult<string>.SuccessResult("Auction Item Successfully saved");
+                }
+                return OperationResult<string>.FailureResult("Failed to save auction item");
+
             }
             catch (Exception ex)
             {

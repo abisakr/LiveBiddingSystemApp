@@ -1,5 +1,6 @@
 using Live_Bidding_System_App.DataContext;
 using Live_Bidding_System_App.Helper;
+using Live_Bidding_System_App.Hubs;
 using Live_Bidding_System_App.Models;
 using Live_Bidding_System_App.Repositories.Seller;
 using Live_Bidding_System_App.Repositories.User;
@@ -7,7 +8,6 @@ using Microsoft.AspNetCore.Authentication.JwtBearer;
 using Microsoft.AspNetCore.Identity;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.IdentityModel.Tokens;
-using NotificationApp.Hubs;
 using System.Text;
 
 var builder = WebApplication.CreateBuilder(args);
@@ -52,7 +52,9 @@ builder.Services.AddAuthentication(options =>
 builder.Services.AddAuthorization();
 
 // Register services for dependency injection
+
 builder.Services.AddScoped<TokenGenerator>();
+builder.Services.AddScoped<ApprovalNotification>();
 builder.Services.AddScoped<IUserAccountRepository, UserAccountRepository>();
 builder.Services.AddScoped<ISellerRepository, SellerRepository>();
 
