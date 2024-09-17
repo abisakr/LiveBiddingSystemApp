@@ -1,4 +1,5 @@
-﻿using Live_Bidding_System_App.Repositories.Seller;
+﻿using Live_Bidding_System_App.Models.Seller;
+using Live_Bidding_System_App.Repositories.Seller;
 using Live_Bidding_System_App.Repositories.Seller.DTO;
 using Microsoft.AspNetCore.Mvc;
 
@@ -79,11 +80,11 @@ namespace Live_Bidding_System_App.Controllers
         }
 
         [HttpGet("getAllAuctionItems")]
-        public async Task<IActionResult> GetAllAuctionItems()
+        public async Task<IActionResult> GetAllAuctionItems(AuctionItemStatus? status)
         {
             try
             {
-                var result = await _sellerRepository.GetAllAuctionItems();
+                var result = await _sellerRepository.GetAllAuctionItems(status);
 
                 if (result.IsSuccess && result.Data != null && result.Data.Any())
                 {
