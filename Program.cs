@@ -1,7 +1,10 @@
+using Hangfire;
+using Hangfire.SqlServer;
 using Live_Bidding_System_App.DataContext;
 using Live_Bidding_System_App.Helper;
 using Live_Bidding_System_App.Hubs;
 using Live_Bidding_System_App.Models;
+using Live_Bidding_System_App.Repositories.Admin;
 using Live_Bidding_System_App.Repositories.Seller;
 using Live_Bidding_System_App.Repositories.User;
 using Microsoft.AspNetCore.Authentication.JwtBearer;
@@ -52,11 +55,31 @@ builder.Services.AddAuthentication(options =>
 builder.Services.AddAuthorization();
 
 // Register services for dependency injection
-
 builder.Services.AddScoped<TokenGenerator>();
+builder.Services.AddScoped<CreateBid>();
 builder.Services.AddScoped<ApprovalNotification>();
 builder.Services.AddScoped<IUserAccountRepository, UserAccountRepository>();
 builder.Services.AddScoped<ISellerRepository, SellerRepository>();
+builder.Services.AddScoped<IAdminRepository, AdminRepository>();
+
+// Configure Hangfire services
+builder.Services.AddHangfire(config =>
+{
+    config.SetDataCompatibilityLevel(CompatibilityLevel.Version_170)
+          .UseSimpleAssemblyNameTypeSerializer()
+          .UseRecommendedSerializerSettings()
+          .UseSqlServerStorage(builder.Configuration.GetConnectionString("DefaultConnection"), new SqlServerStorageOptions
+          {
+              CommandBatchMaxTimeout = TimeSpan.FromMinutes(5),
+              SlidingInvisibilityTimeout = TimeSpan.FromMinutes(5),
+              QueuePollInterval = TimeSpan.Zero,
+              UseRecommendedIsolationLevel = true,
+              DisableGlobalLocks = true
+          });
+});
+
+// Add Hangfire server
+builder.Services.AddHangfireServer();
 
 // Configure the database context
 builder.Services.AddDbContext<ApplicationDbContext>(options =>
@@ -86,12 +109,14 @@ builder.Services.AddEndpointsApiExplorer();
 builder.Services.AddSwaggerGen();
 
 var app = builder.Build();
+
 // Seed roles during application startup
 using (var scope = app.Services.CreateScope())
 {
     var roleManager = scope.ServiceProvider.GetRequiredService<RoleManager<IdentityRole>>();
     await SeedRoles(roleManager);
 }
+
 // Configure the HTTP request pipeline
 if (app.Environment.IsDevelopment())
 {
@@ -101,17 +126,26 @@ if (app.Environment.IsDevelopment())
 
 app.UseHttpsRedirection();
 app.UseStaticFiles();
-app.UseRouting(); // Ensure UseRouting is called before UseAuthentication, UseAuthorization, and UseEndpoints
+app.UseRouting();
 app.UseCors("AllowSpecificOrigin");
 app.UseAuthentication();
 app.UseAuthorization();
+
+// Add Hangfire dashboard for monitoring (optional)
+app.UseHangfireDashboard();
+
+// Use endpoints for controllers and SignalR
 app.UseEndpoints(endpoints =>
 {
     endpoints.MapControllers();
     endpoints.MapHub<NotificationHub>("/notificationHub");
 });
-
+RecurringJob.AddOrUpdate<CreateBid>(
+    "CloseExpiredAuctions",
+    x => x.CloseExpiredAuctions(),
+    Cron.Hourly);
 app.Run();
+
 // Method to seed roles
 async Task SeedRoles(RoleManager<IdentityRole> roleManager)
 {

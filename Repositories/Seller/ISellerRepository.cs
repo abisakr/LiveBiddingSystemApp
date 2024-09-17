@@ -1,4 +1,5 @@
 ﻿using Live_Bidding_System_App.Helper;
+using Live_Bidding_System_App.Models.Seller;
 using Live_Bidding_System_App.Repositories.Seller.DTO;
 
 namespace Live_Bidding_System_App.Repositories.Seller
@@ -8,7 +9,7 @@ namespace Live_Bidding_System_App.Repositories.Seller
         public Task<OperationResult<string>> CreateAuctionItem(CreateAuctionItemDto createAuctionItemDto);
         public Task<OperationResult<string>> EditAuctionItem(int itemId, EditAuctionItemDto editAuctionItemDto);
         public Task<OperationResult<string>> DeleteAuctionItem(int itemId);
-        public Task<OperationResult<IEnumerable<ViewAuctionItemDto>>> GetAllAuctionItems();
+        public Task<OperationResult<IEnumerable<ViewAuctionItemDto>>> GetAllAuctionItems(AuctionItemStatus? status);
         public Task<OperationResult<ViewAuctionItemDto>> GetAuctionItemById(int itemId);
 
     }

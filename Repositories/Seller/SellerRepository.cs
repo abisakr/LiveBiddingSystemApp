@@ -59,8 +59,16 @@ namespace Live_Bidding_System_App.Repositories.Seller
                 if (auctionItem == null)
                     return OperationResult<string>.NotFoundResult();
 
-                auctionItem.Name = editAuctionItemDto.Name;
-                auctionItem.Description = editAuctionItemDto.Description;
+                // Only update properties if provided
+                if (!string.IsNullOrEmpty(editAuctionItemDto.Name))
+                {
+                    auctionItem.Name = editAuctionItemDto.Name;
+                }
+
+                if (!string.IsNullOrEmpty(editAuctionItemDto.Description))
+                {
+                    auctionItem.Description = editAuctionItemDto.Description;
+                }
 
                 if (editAuctionItemDto.Photo != null)
                 {
@@ -82,6 +90,7 @@ namespace Live_Bidding_System_App.Repositories.Seller
                 return OperationResult<string>.FailureResult($"An error occurred: {ex.Message}");
             }
         }
+
 
         public async Task<OperationResult<string>> DeleteAuctionItem(int itemId)
         {
@@ -127,17 +136,29 @@ namespace Live_Bidding_System_App.Repositories.Seller
                 return OperationResult<ViewAuctionItemDto>.FailureResult($"An error occurred: {ex.Message}");
             }
         }
-        public async Task<OperationResult<IEnumerable<ViewAuctionItemDto>>> GetAllAuctionItems()
+
+        public async Task<OperationResult<IEnumerable<ViewAuctionItemDto>>> GetAllAuctionItems(AuctionItemStatus? status)
         {
             try
             {
-                var auctionItems = await _dbContext.AuctionItemsTbl.ToListAsync();
+                // Retrieve items based on status or all items if status is null
+                var auctionItemsQuery = _dbContext.AuctionItemsTbl.AsQueryable();
 
+                // If a status is provided, filter by that status
+                if (status.HasValue)
+                {
+                    auctionItemsQuery = auctionItemsQuery.Where(a => a.Status == status.Value);
+                }
+
+                var auctionItems = await auctionItemsQuery.ToListAsync();
+
+                // Check if no items are found
                 if (auctionItems == null || !auctionItems.Any())
                 {
                     return OperationResult<IEnumerable<ViewAuctionItemDto>>.NotFoundResult();
                 }
 
+                // Map to DTO
                 var auctionItemDtos = auctionItems.Select(auctionItem => new ViewAuctionItemDto
                 {
                     Name = auctionItem.Name,
@@ -153,7 +174,6 @@ namespace Live_Bidding_System_App.Repositories.Seller
                 return OperationResult<IEnumerable<ViewAuctionItemDto>>.FailureResult($"An error occurred: {ex.Message}");
             }
         }
-
     }
 
 
