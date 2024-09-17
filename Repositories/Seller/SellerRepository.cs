@@ -18,7 +18,7 @@ namespace Live_Bidding_System_App.Repositories.Seller
             _approvalNotification = approvalNotification;
         }
 
-        public async Task<OperationResult<string>> CreateAuctionItem(CreateAuctionItemDto createAuctionItemDto)
+        public async Task<OperationResult<string>> CreateAuctionItem(CreateAuctionItemDto createAuctionItemDto, string userId)
         {
             try
             {
@@ -31,7 +31,7 @@ namespace Live_Bidding_System_App.Repositories.Seller
                     Name = createAuctionItemDto.Name,
                     Description = createAuctionItemDto.Description,
                     Photo = memoryStream.ToArray(),
-                    UserId = "690c4def-8904-4767-b903-ed5b6a8c1136"  // Replace with actual user ID logic
+                    UserId = userId
                 };
 
                 await _dbContext.AuctionItemsTbl.AddAsync(auctionItem);

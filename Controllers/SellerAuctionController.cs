@@ -22,7 +22,8 @@ namespace Live_Bidding_System_App.Controllers
         {
             try
             {
-                var result = await _sellerRepository.CreateAuctionItem(createAuctionItemDto);
+                string userId = "690c4def-8904-4767-b903-ed5b6a8c1136";
+                var result = await _sellerRepository.CreateAuctionItem(createAuctionItemDto, userId);
 
                 if (result.IsSuccess)
                 {
