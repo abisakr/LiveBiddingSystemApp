@@ -5,6 +5,7 @@ using Live_Bidding_System_App.Helper;
 using Live_Bidding_System_App.Hubs;
 using Live_Bidding_System_App.Models;
 using Live_Bidding_System_App.Repositories.Admin;
+using Live_Bidding_System_App.Repositories.Buyer;
 using Live_Bidding_System_App.Repositories.Seller;
 using Live_Bidding_System_App.Repositories.User;
 using Microsoft.AspNetCore.Authentication.JwtBearer;
@@ -61,6 +62,7 @@ builder.Services.AddScoped<ApprovalNotification>();
 builder.Services.AddScoped<IUserAccountRepository, UserAccountRepository>();
 builder.Services.AddScoped<ISellerRepository, SellerRepository>();
 builder.Services.AddScoped<IAdminRepository, AdminRepository>();
+builder.Services.AddScoped<IBuyerRepository, BuyerRepository>();
 
 // Configure Hangfire services
 builder.Services.AddHangfire(config =>

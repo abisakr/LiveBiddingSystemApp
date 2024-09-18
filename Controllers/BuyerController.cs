@@ -1,27 +1,27 @@
-﻿using Live_Bidding_System_App.Models.Seller;
-using Live_Bidding_System_App.Repositories.Admin;
+﻿using Live_Bidding_System_App.Repositories.Buyer;
 using Microsoft.AspNetCore.Mvc;
 
 namespace Live_Bidding_System_App.Controllers
 {
     [Route("api/[controller]")]
     [ApiController]
-    public class AdminAccountController : ControllerBase
+    public class BuyerController : ControllerBase
     {
-        private readonly IAdminRepository _adminRepository;
+        private readonly IBuyerRepository _buyerRepository;
 
-        public AdminAccountController(IAdminRepository adminRepository)
+        public BuyerController(IBuyerRepository buyerRepository)
         {
-            _adminRepository = adminRepository;
+            _buyerRepository = buyerRepository;
         }
 
         // [Authorize(AuthenticationSchemes = "Bearer")]
-        [HttpPost("itemApproval/{itemId}")]
-        public async Task<IActionResult> ItemApproval(int itemId, AuctionItemStatus status)
+        [HttpPost("placeBid/{auctionId}")]
+        public async Task<IActionResult> PlaceBid(decimal amount, int auctionId)
         {
             try
             {
-                var result = await _adminRepository.ItemApproval(itemId, status);
+                string userId = "690c4def-8904-4767-b903-ed5b6a8c1136";
+                var result = await _buyerRepository.PlaceBid(amount, auctionId, userId);
 
                 if (result.IsSuccess)
                 {

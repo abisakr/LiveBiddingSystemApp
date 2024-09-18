@@ -75,16 +75,41 @@ namespace Live_Bidding_System_App.Helper
         }
         public async Task CloseExpiredAuctions()
         {
+            // Step 1: Find all expired auctions
             var expiredAuctions = await _dbContext.AuctionsTbl
                 .Where(a => a.EndDate <= DateTime.UtcNow && !a.IsClosed)
+                .Include(a => a.AuctionItem)
+                .Include(a => a.Bids) // Include bids to access all auction participants
                 .ToListAsync();
 
             foreach (var auction in expiredAuctions)
             {
+                // Step 2: Mark the auction as closed
                 auction.IsClosed = true;
+
+                // Step 3: Get the highest bid for this auction
+                var highestBid = auction.Bids
+                    .OrderByDescending(b => b.Amount)
+                    .FirstOrDefault(); // Get the highest bid
+
+                if (highestBid != null)
+                {
+                    // Step 4: Notify all participants about the auction end
+                    foreach (var bid in auction.Bids)
+                    {
+                        await _approvalNotification.OnAuctionItemExpired(bid.UserId, auction.AuctionItem.Name);
+                    }
+
+                    // Step 5: Notify the winner
+                    string winnerUserId = highestBid.UserId;
+                    decimal winningAmount = highestBid.Amount;
+                    await _approvalNotification.OnAuctionItemWin(winnerUserId, auction.AuctionItem.Name, winningAmount);
+                }
             }
 
+            // Step 6: Save changes to the database
             await _dbContext.SaveChangesAsync();
         }
+
     }
 }
