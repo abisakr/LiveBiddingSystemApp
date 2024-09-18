@@ -29,5 +29,17 @@ namespace Live_Bidding_System_App.Helper
             else if (status == AuctionItemStatus.Approved) await _hubContext.Clients.User(userId).SendAsync("ReceiveNotification", $"Your auction item {name} is Approved and Bid is Created.");
 
         }
+        public async Task OnAuctionItemExpired(string userId, string name)
+        {
+            // Notify user about the auction expiration
+            await _hubContext.Clients.User(userId).SendAsync("ReceiveNotification", $"Auction {name} has expired.");
+        }
+
+        public async Task OnAuctionItemWin(string winnerUserId, string name, decimal winningAmount)
+        {
+            // Notify the winner about winning the auction
+            await _hubContext.Clients.User(winnerUserId).SendAsync("ReceiveNotification", $"Congratulations! You won the auction for {name} with a bid of Rs. {winningAmount:F2}.");
+        }
     }
+
 }
