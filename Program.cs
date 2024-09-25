@@ -143,7 +143,7 @@ app.UseEndpoints(endpoints =>
 {
     endpoints.MapControllers();
     endpoints.MapHub<NotificationHub>("/notificationHub");
-    endpoints.MapHub<ChatHub>("/chathub");
+    endpoints.MapHub<ChatHub>("/chatHub");
 });
 RecurringJob.AddOrUpdate<CreateBid>(
     "CloseExpiredAuctions",
