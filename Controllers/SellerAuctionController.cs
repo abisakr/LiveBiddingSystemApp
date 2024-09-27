@@ -1,4 +1,5 @@
-﻿using Live_Bidding_System_App.Models.Seller;
+﻿using Live_Bidding_System_App.Helper;
+using Live_Bidding_System_App.Models.Seller;
 using Live_Bidding_System_App.Repositories.Seller;
 using Live_Bidding_System_App.Repositories.Seller.DTO;
 using Microsoft.AspNetCore.Mvc;
@@ -14,6 +15,8 @@ namespace Live_Bidding_System_App.Controllers
         public SellerAuctionController(ISellerRepository sellerRepository)
         {
             _sellerRepository = sellerRepository;
+            _sellerRepository.NotifyAdmin = DeligateNotificationHelper.SendNotification;
+            _sellerRepository.NotifyAdmin += DeligateNotificationHelper.RenderInfo;
         }
 
         // [Authorize(AuthenticationSchemes = "Bearer")]

@@ -11,7 +11,7 @@ namespace Live_Bidding_System_App.Repositories.Seller
     {
         private readonly ApplicationDbContext _dbContext;
         private readonly ApprovalNotification _approvalNotification;
-
+        public Delegates.NotifyAdminDelegate NotifyAdmin { get; set; }
         public SellerRepository(ApplicationDbContext dbContext, ApprovalNotification approvalNotification)
         {
             _dbContext = dbContext;
@@ -81,9 +81,16 @@ namespace Live_Bidding_System_App.Repositories.Seller
                 _dbContext.AuctionItemsTbl.Update(auctionItem);
                 var result = await _dbContext.SaveChangesAsync();
 
-                return result > 0
-                    ? OperationResult<string>.SuccessResult("Auction item edited successfully")
-                    : OperationResult<string>.FailureResult("Failed to edit auction item");
+                //return result > 0
+                //? OperationResult<string>.SuccessResult("Auction item edited successfully")
+                //: OperationResult<string>.FailureResult("Failed to edit auction item");
+                if (result > 0)
+                {
+                    NotifyAdmin?.Invoke(auctionItem.Name);
+                    return OperationResult<string>.SuccessResult("Auction item edited successfully");
+                }
+                return OperationResult<string>.FailureResult("Failed to edit auction item");
+
             }
             catch (Exception ex)
             {
