@@ -57,17 +57,17 @@ namespace Live_Bidding_System_App.Repositories.User
                 };
 
                 // Create the user in the database
-                var result = await _userManager.CreateAsync(user, registerDto.Password);
-                if (!result.Succeeded)
-                {
-                    return OperationResult<string>.FailureResult("User registration failed.");
-                }
+                var userResult = await _userManager.CreateAsync(user, registerDto.Password);
+                // Assign the  role to the newly created user
+                var roleResult = await _userManager.AddToRoleAsync(user, registerDto.Role);
 
-                // Assign the "Buyer" role to the newly created user
-                var roleResult = await _userManager.AddToRoleAsync(user, "Buyer");
-                return roleResult.Succeeded
-                    ? OperationResult<string>.SuccessResult("User registered successfully and assigned to Buyer role.")
-                    : OperationResult<string>.FailureResult("User registered successfully but role assignment failed.");
+                if (userResult.Succeeded && roleResult.Succeeded)
+                {
+
+                    return OperationResult<string>.SuccessResult($"User registered successfully and assigned to {registerDto.Role} role.");
+
+                }
+                return OperationResult<string>.FailureResult("User registration failed.");
             }
             catch (Exception ex)
             {

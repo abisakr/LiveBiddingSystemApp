@@ -58,7 +58,10 @@ namespace Live_Bidding_System_App.Repositories.Seller
                 var auctionItem = await _dbContext.AuctionItemsTbl.FindAsync(itemId);
                 if (auctionItem == null)
                     return OperationResult<string>.NotFoundResult();
-
+                if (auctionItem.Status == AuctionItemStatus.Approved || auctionItem.Status == AuctionItemStatus.Rejected)
+                {
+                    return OperationResult<string>.FailureResult($"Cant edit {auctionItem.Status} auction item");
+                }
                 // Only update properties if provided
                 if (!string.IsNullOrEmpty(editAuctionItemDto.Name))
                 {
@@ -175,7 +178,5 @@ namespace Live_Bidding_System_App.Repositories.Seller
             }
         }
     }
-
-
 
 }

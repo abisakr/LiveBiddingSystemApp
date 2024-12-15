@@ -15,6 +15,8 @@ namespace Live_Bidding_System_App.Repositories.User.DTO
 
         [Required]
         public string Password { get; set; }
+        [Required]
+        public string Role { get; set; }
         public string? Token { get; set; }
 
     }

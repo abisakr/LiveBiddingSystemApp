@@ -24,7 +24,6 @@ namespace Live_Bidding_System_App.Repositories.Admin
                 var auctionItem = await _dbContext.AuctionItemsTbl.FindAsync(itemId);
                 if (auctionItem == null)
                     return OperationResult<string>.NotFoundResult();
-
                 auctionItem.Status = status;
                 _dbContext.AuctionItemsTbl.Update(auctionItem);
                 var result = await _dbContext.SaveChangesAsync();

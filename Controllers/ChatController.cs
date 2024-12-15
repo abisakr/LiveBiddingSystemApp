@@ -21,7 +21,7 @@ namespace Live_Bidding_System_App.Controllers
         {
             try
             {
-                string userId = "690c4def-8904-4767-b903-ed5b6a8c1136";
+                string userId = "89dc726d-08d6-410d-a976-1cb145236e48";
                 var result = await _chattingRepository.CreateChat(createchatDto, auctionId, userId);
 
                 if (result.IsSuccess)
