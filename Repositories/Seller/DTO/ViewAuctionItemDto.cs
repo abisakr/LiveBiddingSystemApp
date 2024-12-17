@@ -6,6 +6,7 @@
         public string Description { get; set; }
         public string Status { get; set; }
         public string Photo { get; set; }
+        public int AuctionItemCategoryId { get; set; }
 
     }
 }

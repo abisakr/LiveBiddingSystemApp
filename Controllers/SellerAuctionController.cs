@@ -15,16 +15,35 @@ namespace Live_Bidding_System_App.Controllers
         {
             _sellerRepository = sellerRepository;
         }
+        [HttpPost("createItemCategory")]
+        public async Task<IActionResult> CreateItemCategory(CreateItemCategoryDto createItemCategoryDto)
+        {
+            try
+            {
+                var result = await _sellerRepository.CreateItemCategory(createItemCategoryDto);
+
+                if (result.IsSuccess)
+                {
+                    return Ok(result.Message); // Success case
+                }
+
+                return BadRequest(result.Message); // Failure case
+            }
+            catch (Exception ex)
+            {
+                return StatusCode(500, $"An error occurred while processing your request: {ex.Message}");
+            }
+        }
 
         // [Authorize(AuthenticationSchemes = "Bearer")]
         [HttpPost("createAuctionItem")]
-        public async Task<IActionResult> CreateAuctionItem([FromForm] CreateAuctionItemDto createAuctionItemDto)
+        public async Task<IActionResult> CreateAuctionItem([FromForm] CreateAuctionItemDto createAuctionItemDto, int categoryId)
         {
             try
             {
                 //var userId = User.Claims.FirstOrDefault(c => c.Type == ClaimTypes.NameIdentifier)?.Value;
-                string userId = "89dc726d-08d6-410d-a976-1cb145236e48";
-                var result = await _sellerRepository.CreateAuctionItem(createAuctionItemDto, userId);
+                string userId = "30c19a4a-6b00-4a93-b0e4-4aedc446409e";
+                var result = await _sellerRepository.CreateAuctionItem(createAuctionItemDto, userId, categoryId);
 
                 if (result.IsSuccess)
                 {

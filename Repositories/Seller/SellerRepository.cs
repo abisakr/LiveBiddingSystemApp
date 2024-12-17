@@ -18,7 +18,34 @@ namespace Live_Bidding_System_App.Repositories.Seller
             _approvalNotification = approvalNotification;
         }
 
-        public async Task<OperationResult<string>> CreateAuctionItem(CreateAuctionItemDto createAuctionItemDto, string userId)
+        public async Task<OperationResult<string>> CreateItemCategory(CreateItemCategoryDto createItemCategoryDto)
+        {
+            try
+            {
+
+
+                var auctionItemCategory = new AuctionItemCategory
+                {
+                    CategoryName = createItemCategoryDto.CategoryName
+
+                };
+
+                await _dbContext.AuctionItemCategoryTbl.AddAsync(auctionItemCategory);
+                var result = await _dbContext.SaveChangesAsync();
+
+                if (result > 0)
+                {
+                    return OperationResult<string>.SuccessResult("Auction Item Category Successfully Created");
+                }
+                return OperationResult<string>.FailureResult("Failed to save auction item category");
+
+            }
+            catch (Exception ex)
+            {
+                return OperationResult<string>.FailureResult($"An error occurred: {ex.Message}");
+            }
+        }
+        public async Task<OperationResult<string>> CreateAuctionItem(CreateAuctionItemDto createAuctionItemDto, string userId, int categoryId)
         {
             try
             {
@@ -31,7 +58,8 @@ namespace Live_Bidding_System_App.Repositories.Seller
                     Name = createAuctionItemDto.Name,
                     Description = createAuctionItemDto.Description,
                     Photo = memoryStream.ToArray(),
-                    UserId = userId
+                    UserId = userId,
+                    AuctionItemCategoryId = categoryId
                 };
 
                 await _dbContext.AuctionItemsTbl.AddAsync(auctionItem);
@@ -129,7 +157,8 @@ namespace Live_Bidding_System_App.Repositories.Seller
                     Name = auctionItem.Name,
                     Description = auctionItem.Description,
                     Photo = Convert.ToBase64String(auctionItem.Photo),
-                    Status = auctionItem.Status.ToString()
+                    Status = auctionItem.Status.ToString(),
+                    AuctionItemCategoryId = auctionItem.AuctionItemCategoryId
                 };
 
                 return OperationResult<ViewAuctionItemDto>.SuccessResult("Item found", auctionItemDto);
@@ -167,7 +196,8 @@ namespace Live_Bidding_System_App.Repositories.Seller
                     Name = auctionItem.Name,
                     Description = auctionItem.Description,
                     Status = auctionItem.Status.ToString(),
-                    Photo = Convert.ToBase64String(auctionItem.Photo)
+                    Photo = Convert.ToBase64String(auctionItem.Photo),
+                    AuctionItemCategoryId = auctionItem.AuctionItemCategoryId
                 }).ToList();
 
                 return OperationResult<IEnumerable<ViewAuctionItemDto>>.SuccessResult("Auction items retrieved successfully", auctionItemDtos);
@@ -177,6 +207,8 @@ namespace Live_Bidding_System_App.Repositories.Seller
                 return OperationResult<IEnumerable<ViewAuctionItemDto>>.FailureResult($"An error occurred: {ex.Message}");
             }
         }
+
+
     }
 
 }

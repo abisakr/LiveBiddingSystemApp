@@ -11,8 +11,10 @@ namespace Live_Bidding_System_App.Models.Seller
         public string Description { get; set; }
         public AuctionItemStatus Status { get; set; } = AuctionItemStatus.Pending;
         public string UserId { get; set; }
+        public int AuctionItemCategoryId { get; set; }
         public ApplicationUser User { get; set; }
         public ICollection<Auction> Auctions { get; set; }
+        public AuctionItemCategory AuctionItemCategory { get; set; }
     }
 
     public enum AuctionItemStatus

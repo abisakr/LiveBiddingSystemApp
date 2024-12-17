@@ -4,7 +4,7 @@
 
 namespace Live_Bidding_System_App.Migrations
 {
-    public partial class initial : Migration
+    public partial class @new : Migration
     {
         protected override void Up(MigrationBuilder migrationBuilder)
         {
@@ -27,8 +27,9 @@ namespace Live_Bidding_System_App.Migrations
                 columns: table => new
                 {
                     Id = table.Column<string>(type: "nvarchar(450)", nullable: false),
-                    Address = table.Column<string>(type: "nvarchar(max)", nullable: false),
-                    Photo = table.Column<byte[]>(type: "varbinary(max)", nullable: false),
+                    FullName = table.Column<string>(type: "nvarchar(max)", nullable: false),
+                    Address = table.Column<string>(type: "nvarchar(max)", nullable: true),
+                    Photo = table.Column<byte[]>(type: "varbinary(max)", nullable: true),
                     UserName = table.Column<string>(type: "nvarchar(256)", maxLength: 256, nullable: true),
                     NormalizedUserName = table.Column<string>(type: "nvarchar(256)", maxLength: 256, nullable: true),
                     Email = table.Column<string>(type: "nvarchar(256)", maxLength: 256, nullable: true),
@@ -47,6 +48,19 @@ namespace Live_Bidding_System_App.Migrations
                 constraints: table =>
                 {
                     table.PrimaryKey("PK_AspNetUsers", x => x.Id);
+                });
+
+            migrationBuilder.CreateTable(
+                name: "AuctionItemCategoryTbl",
+                columns: table => new
+                {
+                    Id = table.Column<int>(type: "int", nullable: false)
+                        .Annotation("SqlServer:Identity", "1, 1"),
+                    CategoryName = table.Column<string>(type: "nvarchar(max)", nullable: false)
+                },
+                constraints: table =>
+                {
+                    table.PrimaryKey("PK_AuctionItemCategoryTbl", x => x.Id);
                 });
 
             migrationBuilder.CreateTable(
@@ -165,7 +179,8 @@ namespace Live_Bidding_System_App.Migrations
                     Photo = table.Column<byte[]>(type: "varbinary(max)", nullable: false),
                     Description = table.Column<string>(type: "nvarchar(max)", nullable: false),
                     Status = table.Column<int>(type: "int", nullable: false),
-                    UserId = table.Column<string>(type: "nvarchar(450)", nullable: false)
+                    UserId = table.Column<string>(type: "nvarchar(450)", nullable: false),
+                    AuctionItemCategoryId = table.Column<int>(type: "int", nullable: false)
                 },
                 constraints: table =>
                 {
@@ -174,6 +189,12 @@ namespace Live_Bidding_System_App.Migrations
                         name: "FK_AuctionItemsTbl_AspNetUsers_UserId",
                         column: x => x.UserId,
                         principalTable: "AspNetUsers",
+                        principalColumn: "Id",
+                        onDelete: ReferentialAction.Cascade);
+                    table.ForeignKey(
+                        name: "FK_AuctionItemsTbl_AuctionItemCategoryTbl_AuctionItemCategoryId",
+                        column: x => x.AuctionItemCategoryId,
+                        principalTable: "AuctionItemCategoryTbl",
                         principalColumn: "Id",
                         onDelete: ReferentialAction.Cascade);
                 });
@@ -280,30 +301,28 @@ namespace Live_Bidding_System_App.Migrations
                 });
 
             migrationBuilder.CreateTable(
-      name: "ApplicationUserChatRoom",
-      columns: table => new
-      {
-          Id = table.Column<int>(type: "int", nullable: false)
-              .Annotation("SqlServer:Identity", "1, 1"),
-          ChatRoomsId = table.Column<int>(type: "int", nullable: false),
-          ParticipantsId = table.Column<string>(type: "nvarchar(450)", nullable: false)
-      },
-      constraints: table =>
-      {
-          table.PrimaryKey("PK_ApplicationUserChatRoom", x => x.Id);
-          table.ForeignKey(
-              name: "FK_ApplicationUserChatRoom_AspNetUsers_ParticipantsId",
-              column: x => x.ParticipantsId,
-              principalTable: "AspNetUsers",
-              principalColumn: "Id",
-              onDelete: ReferentialAction.NoAction);
-          table.ForeignKey(
-              name: "FK_ApplicationUserChatRoom_ChatRoomsTbl_ChatRoomsId",
-              column: x => x.ChatRoomsId,
-              principalTable: "ChatRoomsTbl",
-              principalColumn: "Id",
-              onDelete: ReferentialAction.Cascade);
-      });
+                name: "ApplicationUserChatRoom",
+                columns: table => new
+                {
+                    ChatRoomsId = table.Column<int>(type: "int", nullable: false),
+                    ParticipantsId = table.Column<string>(type: "nvarchar(450)", nullable: false)
+                },
+                constraints: table =>
+                {
+                    table.PrimaryKey("PK_ApplicationUserChatRoom", x => new { x.ChatRoomsId, x.ParticipantsId });
+                    table.ForeignKey(
+                        name: "FK_ApplicationUserChatRoom_AspNetUsers_ParticipantsId",
+                        column: x => x.ParticipantsId,
+                        principalTable: "AspNetUsers",
+                        principalColumn: "Id",
+                        onDelete: ReferentialAction.Cascade);
+                    table.ForeignKey(
+                        name: "FK_ApplicationUserChatRoom_ChatRoomsTbl_ChatRoomsId",
+                        column: x => x.ChatRoomsId,
+                        principalTable: "ChatRoomsTbl",
+                        principalColumn: "Id",
+                        onDelete: ReferentialAction.Restrict);
+                });
 
             migrationBuilder.CreateTable(
                 name: "ChatMessagesTbl",
@@ -330,7 +349,7 @@ namespace Live_Bidding_System_App.Migrations
                         column: x => x.ChatRoomId,
                         principalTable: "ChatRoomsTbl",
                         principalColumn: "Id",
-                        onDelete: ReferentialAction.NoAction);
+                        onDelete: ReferentialAction.Restrict);
                 });
 
             migrationBuilder.CreateIndex(
@@ -376,6 +395,11 @@ namespace Live_Bidding_System_App.Migrations
                 column: "NormalizedUserName",
                 unique: true,
                 filter: "[NormalizedUserName] IS NOT NULL");
+
+            migrationBuilder.CreateIndex(
+                name: "IX_AuctionItemsTbl_AuctionItemCategoryId",
+                table: "AuctionItemsTbl",
+                column: "AuctionItemCategoryId");
 
             migrationBuilder.CreateIndex(
                 name: "IX_AuctionItemsTbl_UserId",
@@ -467,6 +491,9 @@ namespace Live_Bidding_System_App.Migrations
 
             migrationBuilder.DropTable(
                 name: "AspNetUsers");
+
+            migrationBuilder.DropTable(
+                name: "AuctionItemCategoryTbl");
         }
     }
 }

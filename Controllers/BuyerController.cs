@@ -20,7 +20,7 @@ namespace Live_Bidding_System_App.Controllers
         {
             try
             {
-                string userId = "690c4def-8904-4767-b903-ed5b6a8c1136";
+                string userId = "30c19a4a-6b00-4a93-b0e4-4aedc446409e";
                 var result = await _buyerRepository.PlaceBid(amount, auctionId, userId);
 
                 if (result.IsSuccess)
@@ -35,5 +35,9 @@ namespace Live_Bidding_System_App.Controllers
                 return StatusCode(500, $"An error occurred while processing your request: {ex.Message}");
             }
         }
+
+        //get all auctions using filter
+        //get my placed auctions by user id
+        //get auctions by category
     }
 }

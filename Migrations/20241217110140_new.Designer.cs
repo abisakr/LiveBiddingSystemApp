@@ -12,8 +12,8 @@ using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 namespace Live_Bidding_System_App.Migrations
 {
     [DbContext(typeof(ApplicationDbContext))]
-    [Migration("20240911121431_initial")]
-    partial class initial
+    [Migration("20241217110140_new")]
+    partial class @new
     {
         protected override void BuildTargetModel(ModelBuilder modelBuilder)
         {
@@ -48,7 +48,6 @@ namespace Live_Bidding_System_App.Migrations
                         .HasColumnType("int");
 
                     b.Property<string>("Address")
-                        .IsRequired()
                         .HasColumnType("nvarchar(max)");
 
                     b.Property<string>("ConcurrencyStamp")
@@ -61,6 +60,10 @@ namespace Live_Bidding_System_App.Migrations
 
                     b.Property<bool>("EmailConfirmed")
                         .HasColumnType("bit");
+
+                    b.Property<string>("FullName")
+                        .IsRequired()
+                        .HasColumnType("nvarchar(max)");
 
                     b.Property<bool>("LockoutEnabled")
                         .HasColumnType("bit");
@@ -86,7 +89,6 @@ namespace Live_Bidding_System_App.Migrations
                         .HasColumnType("bit");
 
                     b.Property<byte[]>("Photo")
-                        .IsRequired()
                         .HasColumnType("varbinary(max)");
 
                     b.Property<string>("SecurityStamp")
@@ -274,6 +276,9 @@ namespace Live_Bidding_System_App.Migrations
 
                     SqlServerPropertyBuilderExtensions.UseIdentityColumn(b.Property<int>("Id"), 1L, 1);
 
+                    b.Property<int>("AuctionItemCategoryId")
+                        .HasColumnType("int");
+
                     b.Property<string>("Description")
                         .IsRequired()
                         .HasColumnType("nvarchar(max)");
@@ -295,9 +300,28 @@ namespace Live_Bidding_System_App.Migrations
 
                     b.HasKey("Id");
 
+                    b.HasIndex("AuctionItemCategoryId");
+
                     b.HasIndex("UserId");
 
                     b.ToTable("AuctionItemsTbl");
+                });
+
+            modelBuilder.Entity("Live_Bidding_System_App.Models.Seller.AuctionItemCategory", b =>
+                {
+                    b.Property<int>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("int");
+
+                    SqlServerPropertyBuilderExtensions.UseIdentityColumn(b.Property<int>("Id"), 1L, 1);
+
+                    b.Property<string>("CategoryName")
+                        .IsRequired()
+                        .HasColumnType("nvarchar(max)");
+
+                    b.HasKey("Id");
+
+                    b.ToTable("AuctionItemCategoryTbl");
                 });
 
             modelBuilder.Entity("Microsoft.AspNetCore.Identity.IdentityRole", b =>
@@ -529,11 +553,19 @@ namespace Live_Bidding_System_App.Migrations
 
             modelBuilder.Entity("Live_Bidding_System_App.Models.Seller.AuctionItem", b =>
                 {
+                    b.HasOne("Live_Bidding_System_App.Models.Seller.AuctionItemCategory", "AuctionItemCategory")
+                        .WithMany("AuctionItems")
+                        .HasForeignKey("AuctionItemCategoryId")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired();
+
                     b.HasOne("Live_Bidding_System_App.Models.ApplicationUser", "User")
                         .WithMany("AuctionItems")
                         .HasForeignKey("UserId")
                         .OnDelete(DeleteBehavior.Cascade)
                         .IsRequired();
+
+                    b.Navigation("AuctionItemCategory");
 
                     b.Navigation("User");
                 });
@@ -616,6 +648,11 @@ namespace Live_Bidding_System_App.Migrations
             modelBuilder.Entity("Live_Bidding_System_App.Models.Seller.AuctionItem", b =>
                 {
                     b.Navigation("Auctions");
+                });
+
+            modelBuilder.Entity("Live_Bidding_System_App.Models.Seller.AuctionItemCategory", b =>
+                {
+                    b.Navigation("AuctionItems");
                 });
 #pragma warning restore 612, 618
         }
