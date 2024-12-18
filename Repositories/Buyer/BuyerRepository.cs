@@ -2,6 +2,7 @@
 using Live_Bidding_System_App.Helper;
 using Live_Bidding_System_App.Models;
 using Live_Bidding_System_App.Models.Buyer;
+using Live_Bidding_System_App.Repositories.Buyer.DTO;
 using Microsoft.EntityFrameworkCore;
 
 namespace Live_Bidding_System_App.Repositories.Buyer
@@ -17,6 +18,72 @@ namespace Live_Bidding_System_App.Repositories.Buyer
             _approvalNotification = approvalNotification;
         }
 
+        public async Task<OperationResult<IEnumerable<ViewAuctionsDto>>> GetAllAuctions()
+        {
+            try
+            {
+                var auctions = _dbContext.AuctionsTbl.Include(i => i.AuctionItem).ThenInclude(i => i.AuctionItemCategory).Where(i => i.IsClosed == false);
+                var auctionsDto = await auctions.Select(auctions => new ViewAuctionsDto
+                {
+                    Title = auctions.Title,
+                    Description = auctions.Description,
+                    Photo = Convert.ToBase64String(auctions.AuctionItem.Photo),
+                    Category = auctions.AuctionItem.AuctionItemCategory.CategoryName,
+                    StartDate = auctions.StartDate,
+                    EndDate = auctions.EndDate
+                }).ToListAsync();
+                return OperationResult<IEnumerable<ViewAuctionsDto>>.SuccessResult("Auctions retrieved successfully", auctionsDto);
+
+            }
+            catch (Exception ex)
+            {
+                return OperationResult<IEnumerable<ViewAuctionsDto>>.FailureResult($"An error occurred: {ex.Message}");
+            }
+        }
+        public async Task<OperationResult<IEnumerable<ViewAuctionsDto>>> GetAuctionsByUserId(string userId)
+        {
+            try
+            {
+                var auctions = _dbContext.AuctionsTbl.Include(i => i.AuctionItem).ThenInclude(i => i.AuctionItemCategory).Where(i => i.IsClosed == false && i.AuctionItem.UserId == userId);
+                var auctionsDto = await auctions.Select(auctions => new ViewAuctionsDto
+                {
+                    Title = auctions.Title,
+                    Description = auctions.Description,
+                    Photo = Convert.ToBase64String(auctions.AuctionItem.Photo),
+                    Category = auctions.AuctionItem.AuctionItemCategory.CategoryName,
+                    StartDate = auctions.StartDate,
+                    EndDate = auctions.EndDate
+                }).ToListAsync();
+                return OperationResult<IEnumerable<ViewAuctionsDto>>.SuccessResult("Auctions retrieved successfully", auctionsDto);
+
+            }
+            catch (Exception ex)
+            {
+                return OperationResult<IEnumerable<ViewAuctionsDto>>.FailureResult($"An error occurred: {ex.Message}");
+            }
+        }
+        public async Task<OperationResult<IEnumerable<ViewAuctionsDto>>> GetAuctionsByCategory(string category)
+        {
+            try
+            {
+                var auctions = _dbContext.AuctionsTbl.Include(i => i.AuctionItem).ThenInclude(i => i.AuctionItemCategory).Where(i => i.IsClosed == false && i.AuctionItem.AuctionItemCategory.CategoryName == category);
+                var auctionsDto = await auctions.Select(auctions => new ViewAuctionsDto
+                {
+                    Title = auctions.Title,
+                    Description = auctions.Description,
+                    Photo = Convert.ToBase64String(auctions.AuctionItem.Photo),
+                    Category = auctions.AuctionItem.AuctionItemCategory.CategoryName,
+                    StartDate = auctions.StartDate,
+                    EndDate = auctions.EndDate
+                }).ToListAsync();
+                return OperationResult<IEnumerable<ViewAuctionsDto>>.SuccessResult("Auctions retrieved successfully", auctionsDto);
+
+            }
+            catch (Exception ex)
+            {
+                return OperationResult<IEnumerable<ViewAuctionsDto>>.FailureResult($"An error occurred: {ex.Message}");
+            }
+        }
         public async Task<OperationResult<string>> PlaceBid(decimal amount, int auctionId, string userId)
         {
             try
@@ -69,6 +136,29 @@ namespace Live_Bidding_System_App.Repositories.Buyer
             catch (Exception ex)
             {
                 return OperationResult<string>.FailureResult($"An error occurred: {ex.Message}");
+            }
+        }
+        public async Task<OperationResult<IEnumerable<ViewBidsDto>>> GetMyBidsByUserId(string userId)
+        {
+            try
+            {
+                var auctions = _dbContext.BidsTbl.Include(i => i.Auction).ThenInclude(i => i.AuctionItem.AuctionItemCategory).Where(i => i.UserId == userId);
+                var auctionsDto = await auctions.Select(auctions => new ViewBidsDto
+                {
+                    Title = auctions.Auction.Title,
+                    Description = auctions.Auction.Description,
+                    Photo = Convert.ToBase64String(auctions.Auction.AuctionItem.Photo),
+                    Category = auctions.Auction.AuctionItem.AuctionItemCategory.CategoryName,
+                    Amount = (double)auctions.Amount,
+                    StartDate = auctions.Auction.StartDate,
+                    EndDate = auctions.Auction.EndDate
+                }).ToListAsync();
+                return OperationResult<IEnumerable<ViewBidsDto>>.SuccessResult("Bids retrieved successfully", auctionsDto);
+
+            }
+            catch (Exception ex)
+            {
+                return OperationResult<IEnumerable<ViewBidsDto>>.FailureResult($"An error occurred: {ex.Message}");
             }
         }
 
